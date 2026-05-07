@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARR.IA — Inquérito Tempestade</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f3f8f5;
+      --panel: #ffffff;
+      --border: #c5d7ce;
+      --border-bright: #9fb8ac;
+      --accent: #007a53;
+      --accent-dim: #005d40;
+      --warn: #9a6b00;
+      --danger: #c62828;
+      --safe: #008f5f;
+      --text: #19362c;
+      --text-dim: #537064;
+      --text-bright: #10241d;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 32px 16px;
+    }
+    .page-wrap { width: 100%; max-width: 820px; }
+    .terminal-wrap { background: var(--panel); border: 1px solid var(--border); }
+    .term-header {
+      background: var(--accent);
+      color: #fff;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      flex-wrap: wrap;
+    }
+    .term-header-right { font-size: 11px; opacity: 0.75; }
+    .term-body { padding: 20px 18px; }
+    .section-label {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 5px;
+      margin-bottom: 14px;
+    }
+    .intro-block {
+      font-size: 12px;
+      line-height: 1.7;
+      margin-bottom: 18px;
+      padding: 12px 14px;
+      border-left: 3px solid var(--accent);
+      background: #edf5f1;
+    }
+    .progress-stick {
+      position: sticky;
+      top: 10px;
+      z-index: 10;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      margin-bottom: 14px;
+    }
+    .progress-bar-wrap {
+      background: #e4ede9;
+      border: 1px solid var(--border);
+      height: 6px;
+      margin-bottom: 8px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.3s;
+    }
+    .progress-label { font-size: 11px; color: var(--text-dim); margin-bottom: 8px; }
+    .progress-sub { font-size: 11px; color: var(--text-dim); }
+    .q-block {
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      padding: 14px;
+      background: #f9fcfa;
+    }
+    .q-block.answered { border-color: var(--border-bright); }
+    .q-meta {
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 0.09em;
+      margin-bottom: 7px;
+    }
+    .badge {
+      padding: 2px 7px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 10px;
+      margin-left: 6px;
+    }
+    .badge.required { border-color: var(--danger); color: var(--danger); }
+    .q-text { font-size: 13px; color: var(--text-bright); margin-bottom: 10px; line-height: 1.6; }
+    .q-input {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: #fff;
+      padding: 10px 12px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      color: var(--text);
+      outline: none;
+    }
+    .q-input:focus { border-color: var(--accent); }
+    .submit-btn {
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      color: #fff;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 13px;
+      padding: 11px 24px;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .submit-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .result-block {
+      display: none;
+      margin-top: 18px;
+      border: 1px solid var(--border);
+      background: #f8fbf9;
+      padding: 18px;
+    }
+    .result-number { font-family: 'VT323', monospace; font-size: 56px; color: var(--accent); line-height: 1; }
+    .result-verdict {
+      font-size: 12px;
+      line-height: 1.7;
+      padding: 12px 14px;
+      background: #edf5f1;
+      border-left: 3px solid var(--accent);
+      margin: 12px 0;
+    }
+    .copy-area { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 14px; }
+    .copy-box {
+      width: 100%;
+      height: 120px;
+      resize: vertical;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: var(--text);
+      padding: 12px;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+    .copy-btn, .reset-btn {
+      background: #fff;
+      border: 1px solid var(--border-bright);
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      padding: 7px 16px;
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .reset-btn { margin-left: 8px; }
+    .term-footer {
+      border-top: 1px solid var(--border);
+      padding: 7px 18px;
+      font-size: 10px;
+      color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 4px;
+      letter-spacing: 0.06em;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+  <div class="terminal-wrap">
+    <div class="term-header">
+      <span>⬡ ARR.IA — INQUÉRITO DE APOIO PÓS-TEMPESTADE</span>
+      <span class="term-header-right">FORM: STORM-100 / REF: GOV/ARR.IA/EMERG-2026</span>
+    </div>
+    <div class="term-body">
+      <div class="section-label">// INSTRUÇÕES DE PREENCHIMENTO</div>
+      <div class="intro-block">
+        Preencha as respostas com o máximo de detalhe possível.<br />
+        Campos assinalados como obrigatório são necessários para submeter o pedido.<br />
+        Campos assinalados como burocrático ajudam a acelerar a análise administrativa.
+      </div>
+
+      <div class="section-label">// QUESTIONÁRIO — 100 ITENS</div>
+      <div class="progress-stick">
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="prog-fill" style="width:0%"></div>
+        </div>
+        <div class="progress-label" id="prog-label">RESPONDIDAS: 0 / 100</div>
+        <div class="progress-sub" id="prog-required">OBRIGATÓRIAS: 0 / 0</div>
+      </div>
+
+      <div id="q-container"></div>
+      <button class="submit-btn" id="submit-btn" disabled onclick="submitInquiry()">▶ FECHAR INQUÉRITO</button>
+
+      <div class="result-block" id="result-block">
+        <div class="section-label" style="margin-top:0">// RESULTADO</div>
+        <div class="result-number" id="r-filled">—</div>
+        <div class="result-verdict" id="r-verdict"></div>
+
+        <div class="copy-area">
+          <div class="section-label" style="margin-top:0">// SUMÁRIO EXPORTÁVEL</div>
+          <textarea class="copy-box" id="copy-box" readonly></textarea>
+          <button class="copy-btn" id="copy-btn" onclick="copyResult()">▶ COPIAR SUMÁRIO</button>
+          <button class="copy-btn" id="print-btn" onclick="printResult()">🖨 IMPRIMIR / EXPORTAR PDF</button>
+          <button class="reset-btn" onclick="resetForm()">REINICIAR</button>
+        </div>
+      </div>
+    </div>
+    <div class="term-footer">
+      <span>PLATAFORMA ARR.IA v4.2.1-STABLE</span>
+      <span>PROTOCOLO STORM-100 — APOIO MUNICIPAL</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const sections = [
+    ["IDENTIFICAÇÃO PESSOAL", [
+      ["Qual e o seu nome completo, incluindo todos os nomes proprios e apelidos?", "obrigatorio"],
+      ["Qual e o seu numero de bilhete de identidade ou cartao de cidadao?", "burocratico"],
+      ["Qual e a validade do seu documento de identificacao?", "burocratico"],
+      ["Qual e o seu numero de contribuinte (NIF)?", "burocratico"],
+      ["Qual e a sua data de nascimento?", "obrigatorio"],
+      ["Qual e o seu local de nascimento (freguesia, concelho, distrito)?", "obrigatorio"],
+      ["Qual e a sua nacionalidade?", "obrigatorio"],
+      ["Qual e o seu estado civil?", "burocratico"],
+      ["Qual e o seu nivel de escolaridade mais elevado concluido?", "burocratico"],
+      ["Qual e a sua profissao atual ou ultima profissao exercida?", "burocratico"]
+    ]],
+    ["MORADA E LOCALIZAÇÃO", [
+      ["Qual e a sua morada completa, incluindo numero de porta e andar?", "obrigatorio"],
+      ["Qual e o codigo postal da sua residencia?", "obrigatorio"],
+      ["Qual e a freguesia em que reside?", "obrigatorio"],
+      ["Confirme o concelho: e Leiria?", "burocratico"],
+      ["Ha quantos anos reside nesta morada?", "obrigatorio"],
+      ["A sua habitacao e arrendada ou propria?", "obrigatorio"],
+      ["Caso seja arrendada, tem contrato de arrendamento formalizado?", "obrigatorio"],
+      ["Qual e o numero de andares do edificio onde reside?", "burocratico"],
+      ["Em que andar se situa a sua habitacao?", "burocratico"],
+      ["O edificio tem elevador? Estava a funcionar durante a tempestade?", "obrigatorio"]
+    ]],
+    ["DADOS DO AGREGADO FAMILIAR", [
+      ["Quantas pessoas residem na sua habitacao?", "obrigatorio"],
+      ["Existem menores de 18 anos no agregado? Quantos?", "burocratico"],
+      ["Existem pessoas com mais de 65 anos no agregado? Quantos?", "burocratico"],
+      ["Algum membro do agregado tem mobilidade reduzida ou deficiencia?", "obrigatorio"],
+      ["Algum membro do agregado tem doenca cronica que requeira cuidados regulares?", "obrigatorio"],
+      ["Existem animais domesticos? Quantos e de que especie?", "obrigatorio"],
+      ["O agregado familiar tem viatura propria? Quantas?", "burocratico"],
+      ["Qual e o rendimento mensal bruto do agregado familiar?", "burocratico"],
+      ["O agregado e beneficiario de algum apoio social ou subsidio?", "obrigatorio"],
+      ["Tem seguro de habitacao? Em caso afirmativo, qual a seguradora e numero de apolice?", "obrigatorio"]
+    ]],
+    ["SOBRE A TEMPESTADE", [
+      ["Em que data ocorreu a tempestade que afetou a sua habitacao?", "obrigatorio"],
+      ["A que horas comecou a notar os primeiros danos?", "obrigatorio"],
+      ["A que horas a situacao se tornou critica?", "obrigatorio"],
+      ["Como classificaria a intensidade do vento no momento do pico da tempestade?", "obrigatorio"],
+      ["Houve chuva intensa associada a tempestade?", "obrigatorio"],
+      ["Houve inundacao no interior da habitacao?", "obrigatorio"],
+      ["A inundacao atingiu que altura (em centimetros) dentro de casa?", "burocratico"],
+      ["Houve queda de arvores nas imediações?", "burocratico"],
+      ["Houve queda de paredes, muros ou outros elementos estruturais?", "obrigatorio"],
+      ["Ficou sem eletricidade? Por quanto tempo?", "obrigatorio"]
+    ]],
+    ["DANOS NA HABITAÇÃO", [
+      ["Qual a area total da habitacao afetada (em metros quadrados)?", "burocratico"],
+      ["Qual a percentagem estimada da habitacao que sofreu danos?", "burocratico"],
+      ["O telhado foi danificado? Em que extensao?", "obrigatorio"],
+      ["As janelas ou portas foram danificadas ou destruidas?", "obrigatorio"],
+      ["Houve danos nas instalacoes eletricas?", "obrigatorio"],
+      ["Houve danos nas canalizacoes ou instalacoes de agua?", "obrigatorio"],
+      ["Os moveis e eletrodomesticos foram afetados? Faca uma lista.", "obrigatorio"],
+      ["Existem danos na estrutura do edificio (paredes, vigas, lajes)?", "obrigatorio"],
+      ["A habitacao ficou inabitavel total ou parcialmente?", "burocratico"],
+      ["Tirou fotografias ou videos dos danos? Tem os ficheiros disponiveis para anexar?", "burocratico"]
+    ]],
+    ["SITUAÇÃO DE EMERGÊNCIA IMEDIATA", [
+      ["Algum membro do agregado precisou de assistencia medica devido a tempestade?", "obrigatorio"],
+      ["Algum membro ficou ferido? Descreva a natureza e gravidade do ferimento.", "burocratico"],
+      ["Contactou os bombeiros? Qual o numero de ocorrencia que lhe forneceram?", "burocratico"],
+      ["Contactou a GNR ou PSP? Qual o numero de registo da ocorrencia?", "obrigatorio"],
+      ["Contactou o INEM ou os servicos de saude?", "obrigatorio"],
+      ["Foi necessaria evacuacao da habitacao?", "obrigatorio"],
+      ["Caso tenha evacuado, para onde se deslocou?", "burocratico"],
+      ["Ha quanto tempo esta fora da sua habitacao (se aplicavel)?", "burocratico"],
+      ["Tem onde ficar enquanto a situacao nao for resolvida?", "obrigatorio"],
+      ["Tem acesso a alimentacao, agua potavel e medicamentos necessarios?", "obrigatorio"]
+    ]],
+    ["APOIOS E CONTACTOS JÁ EFETUADOS", [
+      ["Contactou a Camara Municipal de Leiria? Com quem falou?", "obrigatorio"],
+      ["Contactou a Protecao Civil? Em que data e hora?", "obrigatorio"],
+      ["Participou o sinistro a sua seguradora? Qual o numero de processo?", "burocratico"],
+      ["A seguradora ja enviou um perito para avaliar os danos?", "burocratico"],
+      ["Recebeu algum apoio ou resposta das entidades contactadas ate a data?", "obrigatorio"],
+      ["Esta registado em alguma lista de desalojados?", "obrigatorio"],
+      ["Recebeu apoio de familiares, amigos ou vizinhos?", "obrigatorio"],
+      ["Alguma associacao de moradores ou junta de freguesia interveio?", "burocratico"],
+      ["Contactou os media ou servicos de comunicacao social?", "burocratico"],
+      ["Existe mais alguma entidade que considera dever ser contactada?", "obrigatorio"]
+    ]],
+    ["NECESSIDADES IMEDIATAS", [
+      ["Quais sao as suas necessidades mais urgentes neste momento?", "obrigatorio"],
+      ["Necessita de alojamento temporario?", "obrigatorio"],
+      ["Necessita de roupa ou bens de primeira necessidade?", "burocratico"],
+      ["Necessita de apoio psicologico?", "burocratico"],
+      ["Necessita de apoio juridico para lidar com a seguradora ou entidades?", "obrigatorio"],
+      ["Necessita de apoio para limpeza e remocao de escombros?", "obrigatorio"],
+      ["Necessita de material de construcao ou reparacao urgente?", "obrigatorio"],
+      ["Necessita de apoio financeiro imediato?", "obrigatorio"],
+      ["Tem dividas ou compromissos financeiros que a situacao compromete?", "obrigatorio"],
+      ["Necessita de transporte ou apoio em deslocacoes?", "burocratico"]
+    ]],
+    ["CONTEXTO E HISTORIAL", [
+      ["Ja foi afetado por situacoes semelhantes anteriormente?", "burocratico"],
+      ["Em caso afirmativo, em que ano ocorreu a situacao anterior?", "obrigatorio"],
+      ["A zona onde reside e conhecida por ser de risco de inundacoes ou cheias?", "obrigatorio"],
+      ["A habitacao tem alguma classificacao de risco ou esta em zona de protecao especial?", "burocratico"],
+      ["O municipio ja tinha alertado para riscos climaticos na sua area?", "burocratico"],
+      ["Recebeu avisos meteorologicos antes da tempestade?", "obrigatorio"],
+      ["Tomou alguma medida preventiva antes da tempestade? Qual?", "obrigatorio"],
+      ["A habitacao tem alguma irregularidade urbanistica ou licenca pendente?", "obrigatorio"],
+      ["O edificio tem mais de 30 anos? Foi alvo de obras de reabilitacao recentes?", "burocratico"],
+      ["Tem conhecimento de outros vizinhos em situacao semelhante na sua rua ou bairro?", "burocratico"]
+    ]],
+    ["DECLARAÇÕES E CONSENTIMENTOS", [
+      ["Declara que todas as informacoes prestadas sao verdadeiras e completas?", "obrigatorio"],
+      ["Autoriza o tratamento dos seus dados pessoais para efeitos de gestao deste pedido?", "obrigatorio"],
+      ["Autoriza a partilha dos seus dados com entidades parceiras para coordenacao de apoio?", "burocratico"],
+      ["Tem conhecimento de que a prestacao de informacoes falsas constitui crime?", "burocratico"],
+      ["Concorda com os termos e condicoes de utilizacao deste formulario?", "obrigatorio"],
+      ["Pretende ser notificado por email, SMS ou correspondencia postal sobre o andamento do pedido?", "obrigatorio"],
+      ["Deseja receber informacoes sobre medidas de prevencao de riscos climaticos no futuro?", "burocratico"],
+      ["Autoriza visita de tecnico ao local para avaliacao presencial dos danos?", "burocratico"],
+      ["Tem disponibilidade para uma entrevista complementar presencial ou telefonica?", "burocratico"],
+      ["Confirma que leu e compreendeu todas as perguntas deste formulario?", "burocratico"]
+    ]]
+  ];
+
+  const Qs = sections.flatMap(([section, items], sectionIdx) =>
+    items.map(([t, kind], idx) => ({
+      section,
+      t,
+      kind,
+      n: sectionIdx * 10 + idx + 1
+    }))
+  );
+
+  const ans = new Array(Qs.length).fill("");
+  const requiredTotal = Qs.filter(q => q.kind === "obrigatorio").length;
+
+  function render() {
+    const c = document.getElementById("q-container");
+    c.innerHTML = "";
+    let currentSection = "";
+
+    Qs.forEach((q, i) => {
+      if (q.section !== currentSection) {
+        currentSection = q.section;
+        const s = document.createElement("div");
+        s.className = "section-label";
+        s.textContent = "// " + q.section;
+        c.appendChild(s);
+      }
+
+      const d = document.createElement("div");
+      d.className = "q-block" + (ans[i].trim() ? " answered" : "");
+      const required = q.kind === "obrigatorio";
+      d.innerHTML = `
+        <div class="q-meta">
+          ITEM ${String(q.n).padStart(3, "0")} / 100
+          <span class="badge ${required ? "required" : ""}">${q.kind.toUpperCase()}</span>
+        </div>
+        <div class="q-text">${q.t}</div>
+        <textarea class="q-input" rows="2" placeholder="Escreva a sua resposta..." oninput="pick(${i}, this.value, this)">${escapeHtml(ans[i])}</textarea>
+      `;
+      c.appendChild(d);
+    });
+
+  }
+
+  function pick(i, v, el) {
+    ans[i] = v;
+    if (el && el.closest(".q-block")) {
+      el.closest(".q-block").classList.toggle("answered", !!v.trim());
+    }
+    updateProg();
+  }
+
+  function updateProg() {
+    const answered = ans.filter(a => a.trim()).length;
+    const requiredAnswered = ans.filter((a, i) => Qs[i].kind === "obrigatorio" && a.trim()).length;
+    document.getElementById("prog-fill").style.width = (answered / Qs.length * 100) + "%";
+    document.getElementById("prog-label").textContent = `RESPONDIDAS (INQUERITO): ${answered} / ${Qs.length}`;
+    document.getElementById("prog-required").textContent = `OBRIGATORIAS: ${requiredAnswered} / ${requiredTotal}`;
+    document.getElementById("submit-btn").disabled = requiredAnswered < requiredTotal;
+  }
+
+  function submitInquiry() {
+    const answered = ans.filter(a => a.trim()).length;
+    const missingRequired = Qs
+      .filter((q, i) => q.kind === "obrigatorio" && !ans[i].trim())
+      .map(q => q.n);
+
+    if (missingRequired.length) {
+      alert("Faltam preencher perguntas obrigatorias: " + missingRequired.join(", "));
+      return;
+    }
+    const perItem = ans.map(scoreAnswerLikeScale);
+    const adaptedSum = perItem.reduce((acc, score) => acc + (score - 1), 0);
+    const susScore = Math.round(adaptedSum * (100 / (Qs.length * 4)));
+    const aptaAjuda = susScore >= 68;
+    const aptaKit = susScore >= 74;
+    const nivel = aptaKit ? "APROVACAO TOTAL" : (aptaAjuda ? "APROVACAO PARCIAL" : "EM ANALISE PRIORITARIA");
+
+    document.getElementById("r-filled").textContent = `${answered}/100`;
+    document.getElementById("r-verdict").textContent =
+      `Inquerito validado. Pontuacao SUS: ${susScore}/100. Estado: ${nivel}. ` +
+      `Elegibilidade ajuda ARR.IA: ${aptaAjuda ? "APTO" : "NAO APTO"} | ` +
+      `Kit primeiros socorros ARR.IA: ${aptaKit ? "APTO" : "NAO APTO"}.`;
+
+    const now = new Date();
+    const dateStr = now.toLocaleDateString("pt-PT") + " " + now.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+    const summaryLines = [
+      "=== ARR.IA — INQUERITO STORM-100 ===",
+      "Data/hora: " + dateStr,
+      "Respondidas: " + answered + " / 100",
+      "Obrigatorias preenchidas: " + requiredTotal + " / " + requiredTotal,
+      "Pontuacao (formula inspirada no SUS): " + susScore + " / 100",
+      "Apto para ajuda ARR.IA: " + (aptaAjuda ? "SIM" : "NAO"),
+      "Apto para kit primeiros socorros ARR.IA: " + (aptaKit ? "SIM" : "NAO"),
+      "Nivel: " + nivel,
+      "",
+      "RESPOSTAS:"
+    ];
+
+    Qs.forEach((q, i) => {
+      const value = ans[i].trim() ? ans[i].trim().replace(/\s+/g, " ") : "[sem resposta]";
+      summaryLines.push(`${String(q.n).padStart(3, "0")} (${q.kind}): ${q.t}`);
+      summaryLines.push("  -> " + value);
+    });
+
+    summaryLines.push("", "ARR.IA v4.2.1 — GOV/ARR.IA/EMERG-2026");
+    document.getElementById("copy-box").value = summaryLines.join("\n");
+    document.getElementById("result-block").style.display = "block";
+    document.getElementById("result-block").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function copyResult() {
+    const box = document.getElementById("copy-box");
+    box.select();
+    navigator.clipboard.writeText(box.value).catch(() => document.execCommand("copy"));
+    const btn = document.getElementById("copy-btn");
+    btn.textContent = "✓ COPIADO";
+    setTimeout(() => { btn.textContent = "▶ COPIAR SUMARIO"; }, 2000);
+  }
+
+  function printResult() {
+    window.print();
+  }
+
+  function resetForm() {
+    ans.fill("");
+    document.getElementById("result-block").style.display = "none";
+    render();
+    updateProg();
+  }
+
+  function scoreAnswerLikeScale(value) {
+    const len = value.trim().length;
+    if (len === 0) return 1;
+    if (len < 15) return 2;
+    if (len < 40) return 3;
+    if (len < 80) return 4;
+    return 5;
+  }
+
+  function escapeHtml(value) {
+    return value
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  render();
+  updateProg();
+</script>
+</body>
+</html>
